@@ -9,7 +9,8 @@ class BeamNGTestCase:
     def __init__(self, r: Road, file_path: Path, visualise:bool = False) -> None:
         self.road = r
         self.file_path = file_path
-        
+        self.waypoint_name = "GoalWaypoint"
+
         if visualise:
             self.road._show()
     
@@ -55,7 +56,7 @@ class BeamNGTestCase:
     def waypoint_json(self):
 
         return {
-        'name': 'GoalWaypoint',
+        'name': self.waypoint_name,
         'class': 'BeamNGWaypoint',
         'persistentId': str(uuid.uuid4()),
         '__parent': 'Roads',
@@ -76,7 +77,24 @@ class BeamNGTestCase:
 
         print(f"Road written to: \n {self.file_path}")
 
+    def vehicle_start_pose(self, meters_from_road_start=2.5):
 
+        p1 = self.road.points[0]
+        p2 = self.road.points[1]
+
+        _, p1r = self.road._calculate_left_and_right_edge_point(p1, p2)
+        p1r = p1r[0:2]
+
+        direction = np.subtract(p2[0:2], p1[0:2])
+        v = (direction / np.linalg.norm(direction)) * meters_from_road_start
+        middle_of_lane = np.add(p1[0:2], p1r[0:2]) / 2 #making car spawn in the middle of right lane
+        deg = np.degrees(np.arctan2([-v[0]], [-v[1]]))
+        
+        #around x, around y, around z here Z is up direction
+        rot = (0, 0, deg[0])
+        pos = tuple(middle_of_lane + v) + (p1[2],)
+
+        return pos, rot
     ##start finish collect data
 
 

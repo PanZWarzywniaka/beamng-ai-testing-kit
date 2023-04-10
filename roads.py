@@ -32,7 +32,7 @@ class Road:
     def _show(self):
         print(self.points)
         print(f"Length of road is {round(self.line_string.length, 2)} meters")
-        plt.plot(self.points[:,0], self.points[:,1])
+        plt.plot(self.points[:,0], self.points[:,1], "--o")
         ax = plt.gca()
         ax.set_aspect('equal', adjustable='box')
         plt.show()
@@ -60,24 +60,18 @@ class Road:
 
         return left_point, right_point
 
-    def vehicle_start_pose(self, meters_from_road_start=2.5):
-
-        p1 = self.points[0]
-        p2 = self.points[1]
-
-        _, p1r = self._calculate_left_and_right_edge_point(p1, p2)
-        p1r = p1r[0:2]
-
-        direction = np.subtract(p2[0:2], p1[0:2])
-        v = (direction / np.linalg.norm(direction)) * meters_from_road_start
-        middle_of_lane = np.add(p1[0:2], p1r[0:2]) / 2 #making car spawn in the middle of right lane
-        deg = np.degrees(np.arctan2([-v[0]], [-v[1]]))
+    def _interpolate(self):
+    
+        SPLINE_DEGREE = 1
+        INTERPOLATED_POINTS_FOR_EACH_POINT = 2
         
-        #around x, around y, around z here Z is up direction
-        rot = (0, 0, deg[0])
-        pos = tuple(middle_of_lane + v) + (p1[2],)
+        pos_tck, _ = splprep(self.points.T, s=1, k=SPLINE_DEGREE)
 
-        return pos, rot
+        N_POINTS = self.n_points * INTERPOLATED_POINTS_FOR_EACH_POINT
+        unew = np.linspace(0, 1, N_POINTS)
+
+        interpolated = splev(unew, pos_tck) #retured as list of ND arrays
+        self.points = np.array(interpolated).T
 
 
 class OSMRoad(Road):
@@ -89,6 +83,14 @@ class OSMRoad(Road):
         self._download_street_points()
         self._add_elevation()
         self._project_points()
+        self._shift_height()
+        self._interpolate()
+
+    def _shift_height(self):
+        '''Shift down Z (up) axis'''
+        min_z = np.min(self.points[:, 2])
+        self.points[:, 2] -= min_z 
+        self.points[:, 2] += 1     #make the lowest point at z=1
 
     def _project_points(self):
         #recenter
@@ -104,10 +106,6 @@ class OSMRoad(Road):
 
         self.points[:,0] *= LON_DEGREE_IN_METERS 
         self.points[:,1] *= LAT_DEGREE_IN_METERS 
-
-        min_z = np.min(self.points[:, 2])
-        self.points[:, 2] -= min_z #make the lowest point 0 level
-
 
     def _query(self):
         query = overpassQueryBuilder(
