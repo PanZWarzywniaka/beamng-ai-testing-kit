@@ -13,9 +13,10 @@ from abc import ABC
 
 class Road:
 
-    def __init__(self, width=8, points=None, **kwargs) -> None:
+    def __init__(self, width=8, points=None, name="Test Road", **kwargs) -> None:
         self.width = 8
         self.points = points
+        self.name = name
 
     @property
     def line_string(self):
@@ -90,7 +91,8 @@ class OSMRoad(Road):
     def __init__(self, bbox, street_name, **kwargs) -> None:
         super().__init__(**kwargs)
         self.bbox = bbox
-        self.street_name = street_name
+        self.street_name = street_name #for OSM query
+        self.name = street_name #for test name
 
 
         self._download_street_points()

@@ -19,4 +19,4 @@ if __name__ == "__main__":
         )
     test = BeamNGTestCase(road, ROAD_FILE_PATH, visualise=False)
 
-    BeamNGExecutor(BEAMNG_HOME_PATH, BEAMNG_USER_PATH, test).execute()
+    BeamNGExecutor(BEAMNG_HOME_PATH, BEAMNG_USER_PATH, test, ai_on=False).execute()

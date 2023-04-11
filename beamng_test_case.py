@@ -6,14 +6,36 @@ from pathlib import Path
 
 
 class BeamNGTestCase:
-    def __init__(self, r: Road, file_path: Path, visualise:bool = False) -> None:
+    def __init__(self, r: Road, file_path: Path, visualise:bool = False,
+    interval:float = 0.1, risk: float = 0.7, max_speed: float = 100.0) -> None:
         self.road = r
         self.file_path = file_path
         self.waypoint_name = "GoalWaypoint"
 
+        self.interval = interval
+        self.risk = risk
+        self.max_speed = max_speed
+        self.execution_data = {}
+        self._init_execution_data()
+
         if visualise:
             self.road._show()
     
+    def _init_execution_data(self):
+        self.execution_data['name'] = self.road.name
+        self.execution_data['length'] = self.road.line_string.length
+        self.execution_data['n_points'] = self.road.n_points
+        self.execution_data['points'] = self.road.points.tolist()
+
+        self.execution_data['out_of_bounds'] = []
+        self.execution_data['tick_interval'] = self.interval
+        self.execution_data['speed_limit'] = self.max_speed
+        self.execution_data['risk_value'] = self.risk
+
+    def save_execution_data(self, path: Path):
+        with open(path, 'w') as f:
+            json.dump(self.execution_data, f)
+
     @property
     def decal_road_json(self):
 
@@ -77,7 +99,7 @@ class BeamNGTestCase:
 
         print(f"Road written to: \n {self.file_path}")
 
-    def vehicle_start_pose(self, meters_from_road_start=2.5):
+    def vehicle_start_pose(self, meters_from_road_start=3.5):
 
         p1 = self.road.points[0]
         p2 = self.road.points[1]
