@@ -7,7 +7,7 @@ from pathlib import Path
 import json
 from scipy.interpolate import splprep, splev
 from geopy import distance
-from shapely import MultiLineString, LineString, line_merge
+from shapely import MultiLineString, LineString, line_merge, Polygon
 np.set_printoptions(suppress=True)
 from abc import ABC
 
@@ -74,17 +74,32 @@ class Road:
         self.points = np.array(interpolated).T
 
 
+    def _right_lane_polygon(self) -> Polygon:
+        polygon_points = np.copy(self.points[::-1])
+        #iterate pair wise
+        for previous, current in zip(self.points, self.points[1:]):
+            _, right = self._calculate_left_and_right_edge_point(previous, current)
+            right = right.reshape((1,3))
+            polygon_points = np.append(polygon_points, right, axis=0)
+
+        p = Polygon(polygon_points)
+        return p
+
+
 class OSMRoad(Road):
     def __init__(self, bbox, street_name, **kwargs) -> None:
         super().__init__(**kwargs)
         self.bbox = bbox
         self.street_name = street_name
 
+
         self._download_street_points()
         self._add_elevation()
         self._project_points()
         self._shift_height()
         self._interpolate()
+        
+        self.right_lane_polygon = self._right_lane_polygon()
 
     def _shift_height(self):
         '''Shift down Z (up) axis'''

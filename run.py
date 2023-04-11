@@ -54,5 +54,5 @@ if __name__ == "__main__":
     vehicle.ai_drive_in_lane(True)
     vehicle.ai_set_waypoint(test.waypoint_name)
 
-    input(" enter to close it")
+    input("Press enter to close it")
     bng.close()
