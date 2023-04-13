@@ -32,8 +32,9 @@ class BeamNGTestCase:
         self.execution_data['speed_limit'] = self.max_speed
         self.execution_data['risk_value'] = self.risk
 
-    def save_execution_data(self, path: Path):
-        with open(path, 'w') as f:
+    def save_execution_data(self, dir: Path):
+        target_path = dir / f"{self.road.name}.json"
+        with open(target_path, 'w') as f:
             json.dump(self.execution_data, f)
 
     @property

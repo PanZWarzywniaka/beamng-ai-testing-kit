@@ -8,14 +8,15 @@ import shapely
 
 class BeamNGExecutor():
 
-    def __init__(self, beamng_home: Path, beamng_user: Path, test_case: BeamNGTestCase, ai_on=True) -> None:
+    def __init__(self, beamng_home: Path, beamng_user: Path, results_dir: Path, test_case: BeamNGTestCase, ai_on=True) -> None:
 
         beamngpy.logging.basicConfig(filename="beamng.log")
         self.beamng_home = beamng_home
         self.beamng_user = beamng_user
+        self.results_dir = results_dir
         self.test_case = test_case
-        self.goal_reached = False
         self.ai_on = ai_on
+        self.goal_reached = False
         
     def execute(self):
         self._load()
@@ -110,7 +111,7 @@ class BeamNGExecutor():
             inter = self.test_case.interval
             time.sleep(inter - ((time.time() - starttime) % inter))
 
-        self.test_case.save_execution_data(Path("gdzie_kolwiek.json"))
+        self.test_case.save_execution_data(self.results_dir)
         input("Press enter to close it")
         self.bng.close()
 
