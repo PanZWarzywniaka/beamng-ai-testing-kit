@@ -13,16 +13,16 @@ if __name__ == "__main__":
     BEAMNG_HOME_PATH = MAIN_DIR / 'BeamNG.tech.v0.21.3.0'
     ROAD_FILE_PATH = BEAMNG_USER_PATH / 'levels' / "smallgrid" / 'main' / 'MissionGroup' / 'Roads' / 'items.level.json'
     RESULTS_PATH = Path('results')
-
+    MAX_SPEED = 26.8224 # 60mph Uk speed limit
 
     road = OSMRoad(
         bbox=[49.978802, 19.847887, 50.100300, 20.038193],
-        street_name="Zawiła",
+        street_name="Trasa Łagiewnicka",
         )
-    test = BeamNGTestCase(road, ROAD_FILE_PATH, visualise=False)
+    test = BeamNGTestCase(road, ROAD_FILE_PATH, max_speed=MAX_SPEED, visualise=True)
 
     BeamNGExecutor(beamng_home=BEAMNG_HOME_PATH,
                    beamng_user=BEAMNG_USER_PATH,
                    results_dir=RESULTS_PATH,
                    test_case=test,
-                   ai_on=False).execute()
+                   ai_on=True).execute()

@@ -51,7 +51,7 @@ class BeamNGExecutor():
 
     def vehicle_ai_setup(self):
         self.vehicle.ai_set_aggression(self.test_case.risk)
-        self.vehicle.ai_set_speed(self.max_speed, mode='limit')
+        self.vehicle.ai_set_speed(self.test_case.max_speed, mode='limit')
         self.vehicle.ai_drive_in_lane(True)
         self.vehicle.ai_set_waypoint(self.test_case.waypoint_name)
 
@@ -72,28 +72,34 @@ class BeamNGExecutor():
         lane = self.test_case.road.right_lane_polygon
         diffrence = car.difference(lane)
         oob = diffrence.area/car.area
-        # from matplotlib import pyplot as plt
-        # plt.plot(
-        #     *car.exterior.xy, "bo--",
-        #     *lane.exterior.xy, "ro--",
-        #     *diffrence.exterior.xy, "go--",
-        #     )
+        # if oob > 0:
+        #     from matplotlib import pyplot as plt
+        #     plt.plot(
+        #         *car.exterior.xy, "bo--",
+        #         *lane.exterior.xy, "ro--",
+        #         *diffrence.exterior.xy, "go--",
+        #         )
         
-        # oob = diffrence.area/car.area
-        
-        # plt.show()
-        # input("Pres enter")
+        #     plt.show()
+        #     input("Pres enter")
         return oob
 
-
-
+    def _distance_to_goal(self):
+        car = self._car_surface()
+        goal = shapely.Point(self.test_case.waypoint_position)
+        return car.distance(goal)
+    
     def _tick(self):
         #check if finished
+        d = self._distance_to_goal()
+        if d < 8:
+            self.goal_reached = True
 
         #update OOB stats
         oob = self._oob_ratio()
-        print(oob)
         self.test_case.execution_data['out_of_bounds'].append(oob)
+        print(f"Distance to goal: {d}, oob: {oob}")
+
 
     def _run(self):
         #masks some stupid beamngy error
@@ -103,8 +109,7 @@ class BeamNGExecutor():
             pass
 
         starttime = time.time()
-        # while not self.goal_reached:
-        for _ in range(100):
+        while not self.goal_reached:
             self._tick()
 
             #tick every interval
@@ -112,6 +117,5 @@ class BeamNGExecutor():
             time.sleep(inter - ((time.time() - starttime) % inter))
 
         self.test_case.save_execution_data(self.results_dir)
-        input("Press enter to close it")
         self.bng.close()
 

@@ -76,6 +76,7 @@ class Road:
 
 
     def _right_lane_polygon(self) -> Polygon:
+
         polygon_points = np.copy(self.points[::-1])
         #iterate pair wise
         for previous, current in zip(self.points, self.points[1:]):
@@ -83,6 +84,11 @@ class Road:
             right = right.reshape((1,3))
             polygon_points = np.append(polygon_points, right, axis=0)
 
+        #add last point, as linear interpolation
+        diff = polygon_points[-1] - polygon_points[-2]
+        last_point = polygon_points[-1] + diff
+        last_point = last_point.reshape((1,3))
+        polygon_points = np.append(polygon_points, last_point, axis=0)
         p = Polygon(polygon_points)
         return p
 

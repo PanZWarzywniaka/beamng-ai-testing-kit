@@ -76,6 +76,9 @@ class BeamNGTestCase:
         }
 
     @property
+    def waypoint_position(self) -> list:
+        return self.road.points[-1].tolist()
+    @property
     def waypoint_json(self):
 
         return {
@@ -83,7 +86,7 @@ class BeamNGTestCase:
         'class': 'BeamNGWaypoint',
         'persistentId': str(uuid.uuid4()),
         '__parent': 'Roads',
-        'position': self.road.points[-1].tolist(),
+        'position': self.waypoint_position,
         'scale': [self.road.width]*3, #x y z size
         }
 
