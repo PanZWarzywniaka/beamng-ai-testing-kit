@@ -4,6 +4,17 @@ from pathlib import Path
 import json
 from beamng_executor import BeamNGExecutor
 import time
+import random
+
+
+def get_k_random_streets_from_file(path: Path, k: int):
+    with open(path, "r") as f:
+        test_cases = json.load(f)
+
+    bbox = test_cases['bbox']
+    streets = test_cases['streets']
+    random_streets = random.sample(streets, k)
+    return bbox, random_streets
 
 if __name__ == "__main__":
 
@@ -13,23 +24,22 @@ if __name__ == "__main__":
     BEAMNG_USER_PATH = MAIN_DIR / 'beamng_user' / '0.21'
     BEAMNG_HOME_PATH = MAIN_DIR / 'BeamNG.tech.v0.21.3.0'
     ROAD_FILE_PATH = BEAMNG_USER_PATH / 'levels' / "smallgrid" / 'main' / 'MissionGroup' / 'Roads' / 'items.level.json'
-    RESULTS_PATH = Path('results')
+    RESULTS_PATH = Path('results') / 'osm'
     MAX_SPEED = 26.8224 # 60mph Uk speed limit
+    K_TESTS = 2
 
-    with open("streets.json", "r") as f:
-        test_cases = json.load(f)
+    bbox, streets = get_k_random_streets_from_file("streets.json", K_TESTS)
 
-    bbox = test_cases['bbox']
-    for street_name in test_cases['streets'][1:2]:
+    for i, street_name in enumerate(streets):
 
-        print(f"Testing {street_name}")
+        print(f"{i+1}/{K_TESTS}: {street_name}")
         time.sleep(1)
 
         road = OSMRoad(
             bbox=bbox,
             street_name=street_name,
             )
-        test = BeamNGTestCase(road, ROAD_FILE_PATH, max_speed=MAX_SPEED, visualise=True)
+        test = BeamNGTestCase(road, ROAD_FILE_PATH, max_speed=MAX_SPEED, visualise=False)
 
         BeamNGExecutor(beamng_home=BEAMNG_HOME_PATH,
                     beamng_user=BEAMNG_USER_PATH,

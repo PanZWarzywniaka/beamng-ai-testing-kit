@@ -160,6 +160,9 @@ class OSMRoad(Road):
             longest = np.argmax(lengths)
             mls = mls.geoms[longest]
         
+        if not isinstance(mls, (LineString, MultiLineString)):
+            input("Debug")
+            
         self.points = np.array(mls.coords)
 
     def _add_elevation(self, dataset="eudem25m"):

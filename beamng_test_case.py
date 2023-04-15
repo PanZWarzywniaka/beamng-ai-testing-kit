@@ -6,8 +6,11 @@ from pathlib import Path
 
 
 class BeamNGTestCase:
+
+    HARD_SHOULDER_WIDTH = 1 #meter, in the UK for non-motorway roads
+
     def __init__(self, r: Road, file_path: Path, visualise:bool = False,
-    interval:float = 0.1, risk: float = 0.7, max_speed: float = 100.0) -> None:
+    interval:float = 0.1, risk: float = 0.5, max_speed: float = 100.0) -> None:
         self.road = r
         self.file_path = file_path
         self.waypoint_name = "GoalWaypoint"
@@ -27,10 +30,16 @@ class BeamNGTestCase:
         self.execution_data['n_points'] = self.road.n_points
         self.execution_data['points'] = self.road.points.tolist()
 
-        self.execution_data['out_of_bounds'] = []
+        
         self.execution_data['tick_interval'] = self.interval
         self.execution_data['speed_limit'] = self.max_speed
         self.execution_data['risk_value'] = self.risk
+
+        #filled by executor
+        self.execution_data['finish'] = "Not finished"
+        self.execution_data['out_of_bounds'] = []
+        self.execution_data['position'] = []
+        self.execution_data['velocity'] = []
 
     def save_execution_data(self, dir: Path):
         target_path = dir / f"{self.road.name}.json"
@@ -47,7 +56,7 @@ class BeamNGTestCase:
             "persistentId": str(uuid.uuid4()), 
             "__parent": "Roads", 
             "position": [0, 0, 0], 
-            "Material": "a_asphalt_01_a", 
+            "Material": "tig_road_rubber_sticky", 
             "drivability": 1, 
             "improvedSpline": True, 
             "nodes": nodes.tolist(), 
@@ -57,7 +66,8 @@ class BeamNGTestCase:
     @property
     def mesh_road_json(self):
 
-        mesh_road_width = self.road.width*3
+        #withd of the road plus hard shoulder from both sides
+        mesh_road_width = self.road.width + 2*self.HARD_SHOULDER_WIDTH 
         road_width_column = np.full(self.road.n_points, mesh_road_width)
         road_height_column = self.road.points[:,2] #match heigth with Z
         
@@ -118,11 +128,31 @@ class BeamNGTestCase:
         
         #around x, around y, around z here Z is up direction
         rot = (0, 0, deg[0])
-        pos = tuple(middle_of_lane + v) + (p1[2],)
+        pos = tuple(middle_of_lane + v) + (p1[2]+0.25,)
 
         return pos, rot
-    ##start finish collect data
 
+    # def vehicle_start_pose(self, meters_from_road_start=3.5):
+
+    #     p1 = self.road.points[0]
+    #     p2 = self.road.points[1]
+
+    #     _, p1r = self.road._calculate_left_and_right_edge_point(p1, p2)
+
+    #     direction = np.subtract(p2, p1)
+    #     v = (direction / np.linalg.norm(direction)) * meters_from_road_start
+    #     middle_of_lane = (p1 + p1r) / 2 #making car spawn in the middle of right lane
+        
+    #     # Rotation angle around X axis
+    #     theta_x = np.degrees(np.arctan2(v[1], v[2]))  # Rotation around X axis
+    #     theta_y = np.degrees(np.arctan2(v[0], np.sqrt(v[1]**2 + v[2]**2)))  # Rotation around Y axis
+    #     theta_z = np.degrees(np.arctan2(v[1], v[0]))  # Rotation around Z axis
+
+    #     #around x, around y, around z here Z is up direction
+    #     rot = (theta_x, theta_y, theta_z)
+    #     pos = tuple(middle_of_lane + v)
+
+    #     return pos, rot
 
 if __name__ == "__main__":
     print(f"File {__file__} is not meant to run as main")

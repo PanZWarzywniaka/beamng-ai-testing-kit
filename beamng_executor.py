@@ -5,8 +5,12 @@ from beamngpy import BeamNGpy, Scenario, Vehicle
 from beamng_test_case import BeamNGTestCase
 from pathlib import Path
 import shapely
+import numpy as np
 
 class BeamNGExecutor():
+
+    TIME_BUDGET = 60 #60secs
+    GOAL_DISTANCE_THRESHOLD = 8 #if car is 8 meters from goal, the goal is reached
 
     def __init__(self, beamng_home: Path, beamng_user: Path, results_dir: Path, test_case: BeamNGTestCase, ai_on=True) -> None:
 
@@ -16,7 +20,7 @@ class BeamNGExecutor():
         self.results_dir = results_dir
         self.test_case = test_case
         self.ai_on = ai_on
-        self.goal_reached = False
+        self.end = False
         
     def execute(self):
         self._load()
@@ -50,7 +54,7 @@ class BeamNGExecutor():
             self.vehicle_ai_setup()
 
     def vehicle_ai_setup(self):
-        self.vehicle.ai_set_aggression(self.test_case.risk)
+        # self.vehicle.ai_set_aggression(self.test_case.risk)
         self.vehicle.ai_set_speed(self.test_case.max_speed, mode='limit')
         self.vehicle.ai_drive_in_lane(True)
         self.vehicle.ai_set_waypoint(self.test_case.waypoint_name)
@@ -89,17 +93,50 @@ class BeamNGExecutor():
         goal = shapely.Point(self.test_case.waypoint_position)
         return car.distance(goal)
     
-    def _tick(self):
-        #check if finished
+    def _has_no_time(self):
+        now = time.time()
+        elapsed = now-self.start_time
+        return elapsed >= self.TIME_BUDGET
+    
+    def _goal_reached(self):
         d = self._distance_to_goal()
-        if d < 8:
-            self.goal_reached = True
+        return d < self.GOAL_DISTANCE_THRESHOLD
+    
+    def _check_end_conditions(self):
+        if self._has_no_time():
+            self.end = True
+            self.test_case.execution_data['finish'] = "Out of time"
+            print("Out of time, closing")
 
-        #update OOB stats
+        if self._goal_reached():
+            self.end = True
+            self.test_case.execution_data['finish'] = "Goal Reached"
+            print("Goal reached successfully quiting")
+
+    def _read_execution_data(self):
         oob = self._oob_ratio()
         self.test_case.execution_data['out_of_bounds'].append(oob)
-        print(f"Distance to goal: {d}, oob: {oob}")
 
+        msg = f"Oob: {oob:.3f}, "
+        if self.vehicle.state:
+            pos = self.vehicle.state.get('pos')
+            self.test_case.execution_data['position'].append(pos)
+
+            vel = self.vehicle.state.get('vel')
+            self.test_case.execution_data['velocity'].append(vel)
+
+            msg += f"Position: {pos}, Velocity: {np.linalg.norm(vel)} m/s,"
+
+        print(msg)
+
+    def _tick(self):
+        try:
+            self._read_execution_data()
+            self._check_end_conditions()
+        except Exception as e:
+            self.end = True
+            self.test_case.execution_data['finish'] = f"Exception {e}"
+            print(e.__repr__())
 
     def _run(self):
         #masks some stupid beamngy error
@@ -108,13 +145,13 @@ class BeamNGExecutor():
         except TypeError:
             pass
 
-        starttime = time.time()
-        while not self.goal_reached:
+        self.start_time = time.time()
+        while not self.end:
             self._tick()
 
             #tick every interval
             inter = self.test_case.interval
-            time.sleep(inter - ((time.time() - starttime) % inter))
+            time.sleep(inter - ((time.time() - self.start_time) % inter))
 
         self.test_case.save_execution_data(self.results_dir)
         self.bng.close()
