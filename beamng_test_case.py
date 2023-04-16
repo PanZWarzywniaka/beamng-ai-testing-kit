@@ -128,7 +128,10 @@ class BeamNGTestCase:
         
         #around x, around y, around z here Z is up direction
         rot = (0, 0, deg[0])
-        pos = tuple(middle_of_lane + v) + (p1[2]+0.25,)
+        
+        h1 = p1[2]
+        h2 = p2[2]
+        pos = tuple(middle_of_lane + v) + (max(h1,h2),)
 
         return pos, rot
 

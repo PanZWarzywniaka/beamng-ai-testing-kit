@@ -49,7 +49,7 @@ class BeamNGExecutor():
         self.scenario.make(self.bng)
 
         self.bng.load_scenario(self.scenario) 
-
+        
         if self.ai_on:
             self.vehicle_ai_setup()
 
@@ -116,8 +116,9 @@ class BeamNGExecutor():
     def _read_execution_data(self):
         oob = self._oob_ratio()
         self.test_case.execution_data['out_of_bounds'].append(oob)
+        msg = f"Oob: {oob:.2f}"
 
-        msg = f"Oob: {oob:.3f}, "
+        self.vehicle.poll_sensors()
         if self.vehicle.state:
             pos = self.vehicle.state.get('pos')
             self.test_case.execution_data['position'].append(pos)
@@ -125,7 +126,7 @@ class BeamNGExecutor():
             vel = self.vehicle.state.get('vel')
             self.test_case.execution_data['velocity'].append(vel)
 
-            msg += f"Position: {pos}, Velocity: {np.linalg.norm(vel)} m/s,"
+            msg += f", Position: {np.around(pos, 2)}, Velocity: {np.linalg.norm(vel):.2f} m/s"
 
         print(msg)
 

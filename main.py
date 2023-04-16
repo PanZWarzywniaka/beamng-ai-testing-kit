@@ -26,7 +26,7 @@ if __name__ == "__main__":
     ROAD_FILE_PATH = BEAMNG_USER_PATH / 'levels' / "smallgrid" / 'main' / 'MissionGroup' / 'Roads' / 'items.level.json'
     RESULTS_PATH = Path('results') / 'osm'
     MAX_SPEED = 26.8224 # 60mph Uk speed limit
-    K_TESTS = 2
+    K_TESTS = 5
 
     bbox, streets = get_k_random_streets_from_file("streets.json", K_TESTS)
 
