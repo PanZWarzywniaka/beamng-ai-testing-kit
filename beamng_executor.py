@@ -6,6 +6,7 @@ from beamng_test_case import BeamNGTestCase
 from pathlib import Path
 import shapely
 import numpy as np
+import traceback
 
 class BeamNGExecutor():
 
@@ -49,7 +50,7 @@ class BeamNGExecutor():
         self.scenario.make(self.bng)
 
         self.bng.load_scenario(self.scenario) 
-        
+
         if self.ai_on:
             self.vehicle_ai_setup()
 
@@ -106,11 +107,13 @@ class BeamNGExecutor():
         if self._has_no_time():
             self.end = True
             self.test_case.execution_data['finish'] = "Out of time"
+            self.test_case.execution_data['success'] = False
             print("Out of time, closing")
 
         if self._goal_reached():
             self.end = True
             self.test_case.execution_data['finish'] = "Goal Reached"
+            self.test_case.execution_data['success'] = True
             print("Goal reached successfully quiting")
 
     def _read_execution_data(self):
@@ -137,7 +140,9 @@ class BeamNGExecutor():
         except Exception as e:
             self.end = True
             self.test_case.execution_data['finish'] = f"Exception {e}"
+            self.test_case.execution_data['success'] = False
             print(e.__repr__())
+            traceback.print_last()
 
     def _run(self):
         #masks some stupid beamngy error

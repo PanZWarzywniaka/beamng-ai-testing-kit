@@ -14,9 +14,12 @@ from abc import ABC
 class Road:
 
     def __init__(self, width=8, points=None, name="Test Road", **kwargs) -> None:
-        self.width = 8
+        self.width = width
         self.points = points
         self.name = name
+
+        self._interpolate()
+        self.right_lane_polygon = self._right_lane_polygon()
 
     @property
     def line_string(self):
@@ -95,7 +98,7 @@ class Road:
 
 class OSMRoad(Road):
     def __init__(self, bbox, street_name, **kwargs) -> None:
-        super().__init__(**kwargs)
+        
         self.bbox = bbox
         self.street_name = street_name #for OSM query
         self.name = street_name #for test name
@@ -105,9 +108,11 @@ class OSMRoad(Road):
         self._add_elevation()
         self._project_points()
         self._shift_height()
-        self._interpolate()
-        
-        self.right_lane_polygon = self._right_lane_polygon()
+
+        #too hacky need to change it later
+        self.osm_points = self.points
+
+        super().__init__(points=self.osm_points,**kwargs)
 
     def _shift_height(self):
         '''Shift down Z (up) axis'''

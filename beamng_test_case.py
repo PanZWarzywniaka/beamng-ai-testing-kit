@@ -8,6 +8,8 @@ from pathlib import Path
 class BeamNGTestCase:
 
     HARD_SHOULDER_WIDTH = 1 #meter, in the UK for non-motorway roads
+    MAX_ROAD_LENGTH = 2000 #meters
+    MIN_ROAD_LENGTH = 100 #meters
 
     def __init__(self, r: Road, file_path: Path, visualise:bool = False,
     interval:float = 0.1, risk: float = 0.5, max_speed: float = 100.0) -> None:
@@ -40,6 +42,7 @@ class BeamNGTestCase:
         self.execution_data['out_of_bounds'] = []
         self.execution_data['position'] = []
         self.execution_data['velocity'] = []
+        self.execution_data['success'] = False
 
     def save_execution_data(self, dir: Path):
         target_path = dir / f"{self.road.name}.json"
@@ -143,27 +146,20 @@ class BeamNGTestCase:
 
         return pos, rot
 
-    # def vehicle_start_pose(self, meters_from_road_start=3.5):
-
-    #     p1 = self.road.points[0]
-    #     p2 = self.road.points[1]
-
-    #     _, p1r = self.road._calculate_left_and_right_edge_point(p1, p2)
-
-    #     direction = np.subtract(p2, p1)
-    #     v = (direction / np.linalg.norm(direction)) * meters_from_road_start
-    #     middle_of_lane = (p1 + p1r) / 2 #making car spawn in the middle of right lane
+    def is_valid(self) -> bool:
+        if not self.road.line_string.is_simple:
+            print("Road self intersecting")
+            return False
         
-    #     # Rotation angle around X axis
-    #     theta_x = np.degrees(np.arctan2(v[1], v[2]))  # Rotation around X axis
-    #     theta_y = np.degrees(np.arctan2(v[0], np.sqrt(v[1]**2 + v[2]**2)))  # Rotation around Y axis
-    #     theta_z = np.degrees(np.arctan2(v[1], v[0]))  # Rotation around Z axis
+        if self.road.line_string.length < self.MIN_ROAD_LENGTH:
+            print("Road too short")
+            return False
 
-    #     #around x, around y, around z here Z is up direction
-    #     rot = (theta_x, theta_y, theta_z)
-    #     pos = tuple(middle_of_lane + v)
-
-    #     return pos, rot
+        if self.road.line_string.length > self.MAX_ROAD_LENGTH:
+            print("Road too long")
+            return False
+        
+        return True
 
 if __name__ == "__main__":
     print(f"File {__file__} is not meant to run as main")
