@@ -87,7 +87,15 @@ class BeamNGTestCase:
 
     @property
     def waypoint_position(self) -> list:
-        return self.road.points[-1].tolist()
+        #x,y,z
+        second_to_last = self.road.points[-2]
+        last_point = self.road.points[-1]
+        dir = last_point-second_to_last
+        _, r = self.road._calculate_left_and_right_edge_point(
+            last_point, last_point+dir
+        )
+        ret = (last_point+r) / 2
+        return ret.tolist()
     @property
     def waypoint_json(self):
 
@@ -128,7 +136,7 @@ class BeamNGTestCase:
         
         #around x, around y, around z here Z is up direction
         rot = (0, 0, deg[0])
-        
+
         h1 = p1[2]
         h2 = p2[2]
         pos = tuple(middle_of_lane + v) + (max(h1,h2),)
