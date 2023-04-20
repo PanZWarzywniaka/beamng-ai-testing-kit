@@ -142,7 +142,6 @@ class BeamNGExecutor():
             self.test_case.execution_data['finish'] = f"Exception {e}"
             self.test_case.execution_data['success'] = False
             print(e.__repr__())
-            traceback.print_last()
 
     def _run(self):
         #masks some stupid beamngy error

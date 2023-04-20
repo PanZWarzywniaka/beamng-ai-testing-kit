@@ -19,13 +19,12 @@ MIN_ROAD_LENGTH = 100 #meters
 NUM_GA_POINTS = 10
 
 #evaluates execution
-def score(test_case: BeamNGTestCase) -> float:
-    execution = test_case.execution_data
-    if not execution['success']:
+def score(execution_data: dict) -> float:
+    if not execution_data['success']:
         return -1
     
-    oobs = execution['out_of_bounds']
-    length = test_case.road.line_string.length
+    oobs = execution_data['out_of_bounds']
+    length = execution_data['length']
     OOBS_RATION_VALUE = 100
     score = (sum(oobs) / length) * OOBS_RATION_VALUE
     return score
@@ -35,7 +34,7 @@ def fitness_func(ga_instance, solution, solution_idx):
     points = np.array(solution).reshape(NUM_GA_POINTS, 3)
     road = Road(
             points=points,
-            name=f"GA road id: {solution_idx}"
+            name=f"GA road"
         )
     
     test = BeamNGTestCase(road, ROAD_FILE_PATH, max_speed=MAX_SPEED, visualise=False)
@@ -48,7 +47,7 @@ def fitness_func(ga_instance, solution, solution_idx):
                 test_case=test,
                 ai_on=True).execute()
     
-    fitness = score(test)
+    fitness = score(test.execution_data)
     print(f"Fitness value: {fitness}")
     return fitness
     

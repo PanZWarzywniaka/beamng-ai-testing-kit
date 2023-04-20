@@ -3,7 +3,7 @@ import uuid
 import numpy as np
 import json
 from pathlib import Path
-
+import os
 
 class BeamNGTestCase:
 
@@ -45,7 +45,14 @@ class BeamNGTestCase:
         self.execution_data['success'] = False
 
     def save_execution_data(self, dir: Path):
+
+        #find unique name
         target_path = dir / f"{self.road.name}.json"
+        counter = 0
+        while os.path.exists(target_path):
+            target_path = dir / f"{self.road.name}({counter}).json"
+            counter += 1
+
         with open(target_path, 'w') as f:
             json.dump(self.execution_data, f)
 

@@ -101,8 +101,6 @@ class OSMRoad(Road):
         
         self.bbox = bbox
         self.street_name = street_name #for OSM query
-        self.name = street_name #for test name
-
 
         self._download_street_points()
         self._add_elevation()
@@ -112,7 +110,7 @@ class OSMRoad(Road):
         #too hacky need to change it later
         self.osm_points = self.points
 
-        super().__init__(points=self.osm_points,**kwargs)
+        super().__init__(points=self.osm_points, name=street_name, **kwargs)
 
     def _shift_height(self):
         '''Shift down Z (up) axis'''
