@@ -12,7 +12,7 @@ MAIN_DIR = Path('C:\\Users\\tupol\\Documents\\Dissertation')
 BEAMNG_USER_PATH = MAIN_DIR / 'beamng_user' / '0.21'
 BEAMNG_HOME_PATH = MAIN_DIR / 'BeamNG.tech.v0.21.3.0'
 ROAD_FILE_PATH = BEAMNG_USER_PATH / 'levels' / "smallgrid" / 'main' / 'MissionGroup' / 'Roads' / 'items.level.json'
-RESULTS_PATH = Path('results') / 'ga'
+RESULTS_PATH = Path('results') / 'ga_osm'
 MAX_SPEED = 26.8224 # 60mph Uk speed limit
 MAX_ROAD_LENGTH = 2000 #meters
 MIN_ROAD_LENGTH = 100 #meters
@@ -52,21 +52,26 @@ def fitness_func(ga_instance, solution, solution_idx):
     return fitness
     
 
-def rand_population():
-    sol = []
-    for i in range(NUM_GA_POINTS):   
-        x = random.randint(0+(10*i), 10+(10*i))
-        y = random.randint(0+(10*i), 10+(10*i)) 
-        z = random.randint(1, 5)
-        sol += [x, y, z]
+def initial_osm_population(path, k): #returns array of sol_per_pop arrays, each innter array has #NUM_GA_POINTS * 3 poins
+    with open(path, "r") as f:
+        test_cases = json.load(f)
 
-    return sol
+    bbox = test_cases['bbox']
+    streets = test_cases['streets']
+    random_streets = random.sample(streets, k)
+    initial_pop = []
+    for street in random_streets:
+        #generate a road that has NUM_GA_POINTS
+        road = OSMRoad(bbox=bbox, street_name=street, max_points=NUM_GA_POINTS)
+        initial_road = road.points.flatten().tolist()
+        initial_pop.append(initial_road)
+
+    return initial_pop
 
 if __name__ == "__main__":
 
     sol_per_pop = 8
-    initial_population = [
-        rand_population() for _ in range(sol_per_pop)]
+    initial_population = initial_osm_population("streets.json", sol_per_pop)
     print(initial_population)
 
     ga_instance = pygad.GA(num_generations=50,
@@ -76,8 +81,6 @@ if __name__ == "__main__":
                         num_genes=NUM_GA_POINTS * 3, #XYZ,
                         mutation_percent_genes=10,
                         fitness_batch_size=1,#execute one test at a time
-                        init_range_high=500,
-                        init_range_low=-500,
                         initial_population=initial_population,
                         ) 
     ga_instance.run()

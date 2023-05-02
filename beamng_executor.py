@@ -7,11 +7,26 @@ from pathlib import Path
 import shapely
 import numpy as np
 import traceback
+from abc import ABC, abstractmethod
 
-class BeamNGExecutor():
+class Executor(ABC):
 
     TIME_BUDGET = 60 #60secs
     GOAL_DISTANCE_THRESHOLD = 8 #if car is 8 meters from goal, the goal is reached
+
+    @abstractmethod
+    def _load(self):
+        raise "Not Implemented"
+    
+    @abstractmethod
+    def _run(self):
+        raise "Not Implemented"
+    
+    def execute(self):
+        self._load()
+        self._run()
+
+class BeamNGExecutor(Executor):
 
     def __init__(self, beamng_home: Path, beamng_user: Path, results_dir: Path, test_case: BeamNGTestCase, ai_on=True) -> None:
 
@@ -23,9 +38,6 @@ class BeamNGExecutor():
         self.ai_on = ai_on
         self.end = False
         
-    def execute(self):
-        self._load()
-        self._run()
 
     def _load(self):
         self.test_case.write_road_to_level()

@@ -13,11 +13,17 @@ from abc import ABC
 
 class Road:
 
-    def __init__(self, width=8, points=None, name="Test Road", **kwargs) -> None:
+    INTERPOLATED_POINTS_FOR_EACH_POINT = 2
+
+    def __init__(self, width=8, points=None, name="Test Road", max_points = None, **kwargs) -> None:
         self.width = width
         self.points = points
         self.name = name
 
+        if max_points is None:
+            self.n_interpolated_points = self.n_points * self.INTERPOLATED_POINTS_FOR_EACH_POINT
+        else:
+            self.n_interpolated_points = max_points
         self._interpolate()
         self.right_lane_polygon = self._right_lane_polygon()
 
@@ -67,12 +73,8 @@ class Road:
     def _interpolate(self):
     
         SPLINE_DEGREE = 1
-        INTERPOLATED_POINTS_FOR_EACH_POINT = 2
-        
-        pos_tck, _ = splprep(self.points.T, s=1, k=SPLINE_DEGREE)
-
-        N_POINTS = self.n_points * INTERPOLATED_POINTS_FOR_EACH_POINT
-        unew = np.linspace(0, 1, N_POINTS)
+        pos_tck, _ = splprep(self.points.T, s=1, k=SPLINE_DEGREE)        
+        unew = np.linspace(0, 1, self.n_interpolated_points)
 
         interpolated = splev(unew, pos_tck) #retured as list of ND arrays
         self.points = np.array(interpolated).T

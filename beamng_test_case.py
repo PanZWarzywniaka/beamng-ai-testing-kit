@@ -4,27 +4,27 @@ import numpy as np
 import json
 from pathlib import Path
 import os
+from abc import ABC, abstractmethod
 
-class BeamNGTestCase:
-
+class TestCase(ABC):
     HARD_SHOULDER_WIDTH = 1 #meter, in the UK for non-motorway roads
     MAX_ROAD_LENGTH = 2000 #meters
     MIN_ROAD_LENGTH = 100 #meters
 
-    def __init__(self, r: Road, file_path: Path, visualise:bool = False,
-    interval:float = 0.1, risk: float = 0.5, max_speed: float = 100.0) -> None:
-        self.road = r
-        self.file_path = file_path
-        self.waypoint_name = "GoalWaypoint"
+    def is_valid(self) -> bool:
+        if not self.road.line_string.is_simple:
+            print("Road self intersecting")
+            return False
+        
+        if self.road.line_string.length < self.MIN_ROAD_LENGTH:
+            print("Road too short")
+            return False
 
-        self.interval = interval
-        self.risk = risk
-        self.max_speed = max_speed
-        self.execution_data = {}
-        self._init_execution_data()
-
-        if visualise:
-            self.road._show()
+        if self.road.line_string.length > self.MAX_ROAD_LENGTH:
+            print("Road too long")
+            return False
+        
+        return True
     
     def _init_execution_data(self):
         self.execution_data['name'] = self.road.name
@@ -55,6 +55,25 @@ class BeamNGTestCase:
 
         with open(target_path, 'w') as f:
             json.dump(self.execution_data, f)
+
+    
+class BeamNGTestCase(TestCase):
+
+    def __init__(self, r: Road, file_path: Path, visualise:bool = False,
+    interval:float = 0.1, risk: float = 0.5, max_speed: float = 100.0) -> None:
+        self.road = r
+        self.file_path = file_path
+        self.waypoint_name = "GoalWaypoint"
+
+        self.interval = interval
+        self.risk = risk
+        self.max_speed = max_speed
+        self.execution_data = {}
+        self._init_execution_data()
+
+        if visualise:
+            self.road._show()
+    
 
     @property
     def decal_road_json(self):
@@ -153,20 +172,7 @@ class BeamNGTestCase:
 
         return pos, rot
 
-    def is_valid(self) -> bool:
-        if not self.road.line_string.is_simple:
-            print("Road self intersecting")
-            return False
-        
-        if self.road.line_string.length < self.MIN_ROAD_LENGTH:
-            print("Road too short")
-            return False
 
-        if self.road.line_string.length > self.MAX_ROAD_LENGTH:
-            print("Road too long")
-            return False
-        
-        return True
 
 if __name__ == "__main__":
     print(f"File {__file__} is not meant to run as main")
