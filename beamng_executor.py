@@ -92,9 +92,9 @@ class BeamNGExecutor(Executor):
         # if oob > 0:
         #     from matplotlib import pyplot as plt
         #     plt.plot(
-        #         *car.exterior.xy, "bo--",
+        #         *car.exterior.xy, "b-",
         #         *lane.exterior.xy, "ro--",
-        #         *diffrence.exterior.xy, "go--",
+        #         *diffrence.exterior.xy, "g--",
         #         )
         
         #     plt.show()
