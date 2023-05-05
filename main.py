@@ -25,9 +25,9 @@ if __name__ == "__main__":
     BEAMNG_HOME_PATH = MAIN_DIR / 'BeamNG.tech.v0.21.3.0'
     ROAD_FILE_PATH = BEAMNG_USER_PATH / 'levels' / "smallgrid" / 'main' / 'MissionGroup' / 'Roads' / 'items.level.json'
     RESULTS_PATH = Path('results') / 'osm'
-    MAX_SPEED = 26.8224 # 60mph Uk speed limit
-    K_TESTS = 100
-
+    MAX_SPEED = 13.4112 # 30mph Uk speed limit for residential roads
+    
+    K_TESTS = 5
     bbox, streets = get_k_random_streets_from_file("streets.json", K_TESTS)
 
     for i, street_name in enumerate(streets):
@@ -39,10 +39,11 @@ if __name__ == "__main__":
             bbox=bbox,
             street_name=street_name,
             )
-        test = BeamNGTestCase(road, ROAD_FILE_PATH, max_speed=MAX_SPEED, visualise=False)
+        test = BeamNGTestCase(road, ROAD_FILE_PATH, 
+                              max_speed=MAX_SPEED, visualise=False)
 
         BeamNGExecutor(beamng_home=BEAMNG_HOME_PATH,
                     beamng_user=BEAMNG_USER_PATH,
                     results_dir=RESULTS_PATH,
                     test_case=test,
-                    ai_on=True).execute()
+                    ai_on=False).execute()

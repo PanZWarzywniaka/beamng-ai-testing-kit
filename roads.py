@@ -137,8 +137,10 @@ class OSMRoad(Road):
 
     def _query(self):
         query = overpassQueryBuilder(
-            bbox=self.bbox, elementType=['way'],
-            includeGeometry=True, selector=f'"name"="{self.street_name}"')
+            bbox=self.bbox, 
+            elementType=['way'],
+            includeGeometry=True, 
+            selector=f'"name"="{self.street_name}"')
 
         elements = Overpass().query(query).toJSON()['elements']
         return elements
@@ -160,7 +162,7 @@ class OSMRoad(Road):
         mls = line_merge(mls)
 
         if isinstance(mls, MultiLineString):
-            #pick longest one
+            #pick the longest one
             lengths = [g.length for g in mls.geoms]
             longest = np.argmax(lengths)
             mls = mls.geoms[longest]
@@ -173,7 +175,8 @@ class OSMRoad(Road):
     def _add_elevation(self, dataset="eudem25m"):
         points_str = [f"{lat},{lon}" for lon, lat in self.points]
         locations = "|".join(points_str)
-        response = requests.get(f"https://api.opentopodata.org/v1/{dataset}?locations={locations}")
+        response = requests.get(
+            f"https://api.opentopodata.org/v1/{dataset}?locations={locations}")
         elevations = [p['elevation'] for p in response.json()['results']]
         self.points = np.column_stack((self.points, elevations))
 
